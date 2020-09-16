@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+
+    function GetDistance() {
+
+        var string1 = document.getElementById('txtString1').value;
+        var string2 = document.getElementById('txtString2').value;
+
+        if (string1.length <= 0 || string2.length <= 0) {
+            $("#lblResult").html("Both the fields are mandatory!");
+            return;
+        }
+        //Gets the token
+        $.ajax({
+            type: "POST",
+            "data": {
+                "grant_type": "password",
+                "username": "user@ygmconnections.com",
+                "password": "P@ssw0rd"
+            },
+            url: "/connect/token",
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded',
+            success: function (data) {
+
+                //Gets the distance value
+                $.ajax({  
+                    type: "GET",
+                    headers: {
+                        'Authorization': `Bearer ${data.access_token}`
+                    },
+                    url: "/api/LevenshteinDistance/" + string1 + '/' + string2,  
+                    dataType: "json",
+                    contentType: 'application/json; charset=utf-8',  
+                    success: function(data) {  
+                        $("#lblResult").html("The Levenshtein distance is: " + data.Distance);
+
+                        var content = "<table>";
+                        for (var i = 0; i < data.GraphData.length; i++) {
+                            content += '<tr><td>' + data.GraphData[i] + '</td></tr>';
+                        }
+                        content += "</table>";
+                        $('#graph_data').append(content);
+                    },  
+                    error: function () {
+                        $("#lblResult").html("Error occured!!");
+                    }  
+                });
+            },
+            error: function () {
+                $("#lblResult").html("Error occured while generating token!!");
+            }
+        });
+    }
+
+</script>
+
+<div>
+    
+    <br/>
+    <br/>
+    <label for="txtString1">First string</label>
+    <input id="txtString1" type="text" placeholder="Enter first string" class="form-control" onkeypress="return /[a-z]/i.test(event.key)" value="Honda"/>
+    <br/>
+    <label for="txtString2">Second string</label>
+    <input id="txtString2" type="text" , placeholder="Enter second string" class="form-control" onkeypress="return /[a-z]/i.test(event.key)" value="Huyndai"/>
+    <br/>
+    <br/>
+    <input id="btnCalculate" type="button" value="Calculate" class="btn btn-primary" onclick="GetDistance();"/>
+    <br/>
+    <label id="lblResult"></label>
+    <br/>
+    <br/>
+    <div id="graph_data"></div>
+</div>
+
+
